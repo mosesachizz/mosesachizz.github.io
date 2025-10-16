@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moses Achi - Senior Software Engineer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Chart.js for trading graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow: auto;
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 900px;
+      position: relative;
+      animation: modalFade 0.3s;
+    }
+    
+    @keyframes modalFade {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #777;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 200px;
+      width: 100%;
+    }
+    
+    .tenant-card {
+      transition: all 0.3s ease;
+    }
+    
+    .tenant-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    .live-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: pulse 1.5s infinite;
+    }
+    
+    /* Database Architecture Styles */
+    .db-architecture {
+      position: relative;
+      height: 280px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 20px;
+    }
+    
+    .cloud {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      font-weight: bold;
+      color: #3b82f6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .database {
+      position: absolute;
+      bottom: 20px;
+      width: 120px;
+      height: 60px;
+      background: #1e40af;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tenant-db {
+      position: absolute;
+      bottom: 20px;
+      width: 100px;
+      height: 50px;
+      background: #60a5fa;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.8rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .connection {
+      position: absolute;
+      background: #94a3b8;
+      transform-origin: top left;
+    }
+    
+    .data-flow {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #3b82f6;
+      border-radius: 50%;
+      animation: flow 3s linear infinite;
+    }
+    
+    @keyframes flow {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(200px); opacity: 0; }
+    }
+    
+    .schema-table {
+      background: white;
+      border-radius: 4px;
+      padding: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-size: 0.7rem;
+      width: 100px;
+    }
+    
+    .schema-table h4 {
+      margin: 0 0 4px 0;
+      font-weight: bold;
+      color: #1e40af;
+    }
+    
+    .schema-table ul {
+      margin: 0;
+      padding-left: 12px;
+    }
+    
+    .schema-table li {
+      margin: 2px 0;
+    }
+    
+    .highlight {
+      animation: highlight 2s ease-in-out;
+    }
+    
+    @keyframes highlight {
+      0% { background-color: transparent; }
+      50% { background-color: rgba(96, 165, 250, 0.3); }
+      100% { background-color: transparent; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="font-bold text-xl">Moses Achi</div>
+      <div class="space-x-6 hidden md:flex">
+        <a href="#about" class="hover:text-blue-600">About</a>
+        <a href="#experience" class="hover:text-blue-600">Experience</a>
+        <a href="#skills" class="hover:text-blue-600">Skills</a>
+        <a href="#projects" class="hover:text-blue-600">Projects</a>
+        <a href="#contact" class="hover:text-blue-600">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="home" class="min-h-screen flex items-center justify-center pt-20">
+    <div class="text-center">
+      <h1 class="text-5xl font-bold mb-4">Moses Achi</h1>
+      <p class="text-xl text-slate-600">Senior Software Engineer</p>
+      <p class="mt-4 text-slate-600 max-w-xl mx-auto">
+        Software Engineer with 12+ years of experience designing resilient systems across fintech, AI trading, and enterprise SaaS. Skilled at architecting cloud-native platforms, optimizing distributed pipelines, and integrating AI into mission-critical products.
+      </p>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="py-20 px-6 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold mb-6 text-center">About Me</h2>
+      <p class="text-lg text-slate-600 leading-relaxed text-center">
+        Passionate about solving complex problems and building scalable solutions. Experienced in cloud architecture, backend and frontend engineering, and AI/ML systems. Adept at balancing scalability, performance, and security while mentoring teams and accelerating delivery cycles.
+      </p>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section id="experience" class="py-20 px-6 bg-slate-100">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold mb-6 text-center">Experience</h2>
+      <div class="space-y-6">
+
+        <!-- Moonberg -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h3 class="text-xl font-bold">Senior Software Engineer - Moonberg AI</h3>
+          <p class="text-slate-600">Nov 2023 - Present | Remote</p>
+          <ul class="list-disc pl-5 mt-2 text-slate-600 space-y-2">
+            <li>Designed and optimized AI trading algorithms using Python, TensorFlow, and PyTorch, boosting trading accuracy by 25%.</li>
+            <li>Architected scalable microservices on AWS (ECS, Lambda, DynamoDB, S3) with Kubernetes and Docker.</li>
+            <li>Built real-time pipelines with Kafka, Redis, and PostgreSQL, cutting execution time from 120ms to 35ms.</li>
+            <li>Led Agile ceremonies, code reviews, and DevOps automation with GitHub Actions and Terraform.</li>
+          </ul>
+        </div>
+
+        <!-- Binance -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h3 class="text-xl font-bold">Software Engineer - Binance</h3>
+          <p class="text-slate-600">Apr 2020 - Nov 2023 | Remote</p>
+          <ul class="list-disc pl-5 mt-2 text-slate-600 space-y-2">
+            <li>Developed high-throughput transaction engines with Java, Spring Boot, PostgreSQL.</li>
+            <li>Implemented OAuth2.0, JWT, and Kubernetes RBAC policies to strengthen security.</li>
+            <li>Created observability solutions with Prometheus, Grafana, and ELK, cutting incident detection time by 40%.</li>
+          </ul>
+        </div>
+
+        <!-- Adobe -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h3 class="text-xl font-bold">Software Engineer - Adobe Inc.</h3>
+          <p class="text-slate-600">May 2018 - Apr 2020 | Singapore</p>
+          <ul class="list-disc pl-5 mt-2 text-slate-600 space-y-2">
+            <li>Engineered enterprise SaaS features with React.js, Angular, Node.js, and REST APIs.</li>
+            <li>Migrated legacy apps to microservices on Docker & Kubernetes, reducing release cycles significantly.</li>
+            <li>Collaborated with data science teams to integrate predictive analytics into Adobe Marketing Cloud.</li>
+          </ul>
+        </div>
+
+        <!-- Edutech -->
+        <div class="p-6 bg-white rounded-lg shadow">
+          <h3 class="text-xl font-bold">Software Engineer - Edutech</h3>
+          <p class="text-slate-600">Jun 2013 - Apr 2018 | Remote/Part-time</p>
+          <ul class="list-disc pl-5 mt-2 text-slate-600 space-y-2">
+            <li>Built e-learning platform for 100,000+ students with PHP, MySQL, AngularJS on Google Cloud.</li>
+            <li>Optimized infrastructure with Redis caching & DB tuning, handling high concurrency.</li>
+            <li>Directed a cross-functional team, defining product roadmaps and workflows.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills" class="py-20 px-6 bg-white">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-6">Skills</h2>
+      <div class="flex flex-wrap justify-center gap-4">
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">AWS</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">GCP</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Azure</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Kubernetes</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Docker</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Terraform</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Java</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Python</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Go</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Node.js</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Spring Boot</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">React.js</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Angular</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">TypeScript</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">PostgreSQL</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">MongoDB</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Redis</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Kafka</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">TensorFlow</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">PyTorch</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="py-20 px-6 bg-slate-100">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Key Projects</h2>
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Trading Engine -->
+        <div class="bg-white p-8 border rounded-xl shadow hover:shadow-lg transition-all">
+          <div class="mb-6 h-48 overflow-hidden rounded-lg">
+            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" 
+                 alt="Distributed AI Trading Engine" class="w-full h-full object-cover">
+          </div>
+          <h3 class="text-xl font-bold mb-3">Distributed AI Trading Engine</h3>
+          <p class="text-slate-600 mb-4">Built a high-frequency trading engine using Python, TensorFlow, and Kafka with sub-50ms latency, adaptive risk models, and millions of daily transactions.</p>
+          <div class="flex flex-wrap gap-3 mb-4">
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">Python</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">TensorFlow</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">Kafka</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">AWS</span>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="openTradingDemo()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">Live Demo</button>
+            <a href="https://github.com/mosesachizz/distributed-ai-trading-engine" target="_blank" class="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors">Source Code</a>
+          </div>
+        </div>
+        
+        <!-- SaaS Platform -->
+        <div class="bg-white p-8 border rounded-xl shadow hover:shadow-lg transition-all">
+          <div class="mb-6 h-48 overflow-hidden rounded-lg">
+            <img src="https://images.unsplash.com/photo-1639762681057-408e52192e55?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" 
+                 alt="Multi-Tenant SaaS Platform" class="w-full h-full object-cover">
+          </div>
+          <h3 class="text-xl font-bold mb-3">Multi-Tenant SaaS Platform</h3>
+          <p class="text-slate-600 mb-4">Architected a secure, serverless SaaS backend on AWS with automated billing, data isolation, and scalable self-service onboarding.</p>
+          <div class="flex flex-wrap gap-3 mb-4">
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">AWS</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">DynamoDB</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">Lambda</span>
+            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded">Serverless</span>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="openSaaSDemo()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">Live Demo</button>
+            <a href="https://github.com/mosesachizz/multi-tenant-saas-platform" target="_blank" class="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors">Source Code</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trading Demo Modal -->
+  <div id="trading-demo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('trading-demo-modal')">&times;</span>
+      <h2 class="text-2xl font-bold mb-4">Distributed AI Trading Engine Demo</h2>
+      <p class="text-slate-600 mb-6">This interactive demo simulates the AI trading engine with real-time market data and trading capabilities.</p>
+      
+      <div class="bg-slate-100 p-6 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3 flex items-center">
+              <span class="live-indicator"></span> Real-time Market Data
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span>AAPL</span>
+                <span class="text-green-600">$173.52 (+1.2%)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>MSFT</span>
+                <span class="text-green-600">$412.43 (+0.8%)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>TSLA</span>
+                <span class="text-red-600">$180.11 (-2.1%)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>NVDA</span>
+                <span class="text-green-600">$918.35 (+3.4%)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3">AI Trading Interface</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Select Stock</label>
+                <select id="stock-select" class="w-full p-2 border rounded">
+                  <option>AAPL</option>
+                  <option>MSFT</option>
+                  <option>TSLA</option>
+                  <option>NVDA</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Investment Amount ($)</label>
+                <input id="trade-amount" type="number" value="1000" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">AI Strategy</label>
+                <select id="ai-strategy" class="w-full p-2 border rounded">
+                  <option>Momentum Trading</option>
+                  <option>Mean Reversion</option>
+                  <option>Volatility Arbitrage</option>
+                </select>
+              </div>
+              <button id="execute-trade" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Execute Trade</button>
+            </div>
+            <div id="trading-results" class="mt-4 hidden">
+              <h4 class="font-bold mb-2">Trade Execution Results</h4>
+              <p class="text-green-600">Trade executed successfully with 35ms latency</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 bg-white p-4 rounded-lg shadow">
+          <h3 class="text-lg font-bold mb-3 flex items-center">
+            <span class="live-indicator"></span> Performance Metrics
+          </h3>
+          <div class="chart-container">
+            <canvas id="trading-chart"></canvas>
+          </div>
+          <div class="mt-4 grid grid-cols-4 gap-4 text-center">
+            <div>
+              <p class="text-sm text-slate-600">Win Rate</p>
+              <p id="win-rate" class="font-bold text-green-600">78.2%</p>
+            </div>
+            <div>
+              <p class="text-sm text-slate-600">Avg. Return</p>
+              <p id="avg-return" class="font-bold text-green-600">+3.4%</p>
+            </div>
+            <div>
+              <p class="text-sm text-slate-600">Sharpe Ratio</p>
+              <p id="sharpe-ratio" class="font-bold text-blue-600">2.1</p>
+            </div>
+            <div>
+              <p class="text-sm text-slate-600">Max Drawdown</p>
+              <p id="max-drawdown" class="font-bold text-red-600">-8.5%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SaaS Demo Modal -->
+  <div id="saas-demo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('saas-demo-modal')">&times;</span>
+      <h2 class="text-2xl font-bold mb-4">Multi-Tenant SaaS Platform Demo</h2>
+      <p class="text-slate-600 mb-6">This demo showcases the multi-tenant architecture with data isolation and usage tracking.</p>
+      
+      <div class="bg-slate-100 p-6 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3">Tenants</h3>
+            <div class="space-y-3">
+              <div class="tenant-card p-3 bg-blue-50 border border-blue-200 rounded cursor-pointer" data-tenant="globaltech">
+                <h4 class="font-medium">GlobalTech Inc.</h4>
+                <p class="text-sm text-slate-600">Enterprise Plan</p>
+              </div>
+              <div class="tenant-card p-3 bg-white border border-slate-200 rounded cursor-pointer" data-tenant="dataflow">
+                <h4 class="font-medium">DataFlow Systems</h4>
+                <p class="text-sm text-slate-600">Business Plan</p>
+              </div>
+              <div class="tenant-card p-3 bg-white border border-slate-200 rounded cursor-pointer" data-tenant="cloudinnovate">
+                <h4 class="font-medium">CloudInnovate Ltd.</h4>
+                <p class="text-sm text-slate-600">Startup Plan</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="md:col-span-2 bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3">Tenant Details: <span id="current-tenant">GlobalTech Inc.</span></h3>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+              <div class="bg-slate-100 p-3 rounded text-center">
+                <div class="text-2xl font-bold">245</div>
+                <div class="text-sm text-slate-600">Users</div>
+              </div>
+              <div class="bg-slate-100 p-3 rounded text-center">
+                <div class="text-2xl font-bold">2.4M</div>
+                <div class="text-sm text-slate-600">API Requests</div>
+              </div>
+              <div class="bg-slate-100 p-3 rounded text-center">
+                <div class="text-2xl font-bold">348GB</div>
+                <div class="text-sm text-slate-600">Storage</div>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="font-medium mb-2">Usage-Based Billing</h4>
+              <p class="text-slate-600">Current billing cycle: $4,832.50</p>
+              <div class="w-full bg-slate-200 rounded-full h-2.5 mt-2">
+                <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+              </div>
+              <p class="text-sm text-slate-600 mt-1">65% of monthly allocation used</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 bg-white p-4 rounded-lg shadow">
+          <h3 class="text-lg font-bold mb-3">Data Isolation Architecture</h3>
+          <div class="db-architecture" id="db-architecture">
+            <!-- This will be populated by JavaScript -->
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p class="text-sm text-slate-600">Isolation Method</p>
+              <p class="font-bold text-blue-600">Schema-based</p>
+            </div>
+            <div>
+              <p class="text-sm text-slate-600">Database Engine</p>
+              <p class="font-bold text-blue-600">PostgreSQL</p>
+            </div>
+            <div>
+              <p class="text-sm text-slate-600">Tenant Count</p>
+              <p class="font-bold text-blue-600">3,450+</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <section id="contact" class="py-20 px-6 bg-white">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-3xl font-bold mb-6">Get In Touch</h2>
+      <p class="text-lg text-slate-600 mb-6">Reach out for collaborations, opportunities, or mentorship.</p>
+      <div class="flex flex-col items-center gap-4">
+        <a href="mailto:mosesachi.me@gmail.com" class="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <i class="fas fa-envelope mr-2"></i>Send Email
+        </a>
+        <a href="https://linkedin.com/in/achimoses" target="_blank" class="px-6 py-3 bg-slate-800 text-white rounded hover:bg-slate-900">
+          <i class="fab fa-linkedin mr-2"></i>LinkedIn
+        </a>
+        <a href="https://github.com/mosesachizz" target="_blank" class="px-6 py-3 bg-slate-800 text-white rounded hover:bg-slate-900">
+          <i class="fab fa-github mr-2"></i>GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-800 text-white py-6 text-center">
+    © 2025 Moses Achi — All rights reserved.
+  </footer>
+
+  <script>
+    // Global variables for chart and data
+    let tradingChart;
+    let chartData = {
+      dates: [],
+      portfolioValues: [],
+      benchmarkValues: []
+    };
+    let currentValue = 10000;
+    let benchmarkValue = 10000;
+    let dataUpdateInterval;
+    let chartUpdateInterval;
+    let dataFlowInterval;
+
+    // Modal functionality
+    function openTradingDemo() {
+      document.getElementById('trading-demo-modal').style.display = 'block';
+      // Initialize the chart when modal opens
+      setTimeout(createTradingChart, 100);
+      // Start live updates
+      startLiveUpdates();
+    }
+    
+    function openSaaSDemo() {
+      document.getElementById('saas-demo-modal').style.display = 'block';
+      // Initialize database architecture diagram
+      setTimeout(createDatabaseArchitecture, 100);
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      // Stop live updates when modal closes
+      stopLiveUpdates();
+      clearInterval(dataFlowInterval);
+    }
+    
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        // Stop live updates when modal closes
+        stopLiveUpdates();
+        clearInterval(dataFlowInterval);
+      }
+    }
+    
+    // Create trading chart
+    function createTradingChart() {
+      const ctx = document.getElementById('trading-chart').getContext('2d');
+      
+      // Initialize chart data
+      chartData.dates = [];
+      chartData.portfolioValues = [];
+      chartData.benchmarkValues = [];
+      
+      currentValue = 10000;
+      benchmarkValue = 10000;
+      
+      // Generate initial data points
+      for (let i = 0; i < 20; i++) {
+        chartData.dates.push(`T-${20-i}`);
+        
+        // AI Portfolio - more consistent growth with some volatility
+        const aiChange = (Math.random() * 3 - 1) / 100;
+        currentValue = currentValue * (1 + aiChange);
+        chartData.portfolioValues.push(currentValue);
+        
+        // Benchmark - more volatile
+        const benchmarkChange = (Math.random() * 5 - 2.5) / 100;
+        benchmarkValue = benchmarkValue * (1 + benchmarkChange);
+        chartData.benchmarkValues.push(benchmarkValue);
+      }
+      
+      // Create the chart
+      tradingChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartData.dates,
+          datasets: [
+            {
+              label: 'AI Trading Portfolio',
+              data: chartData.portfolioValues,
+              borderColor: 'rgb(59, 130, 246)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            },
+            {
+              label: 'Market Benchmark',
+              data: chartData.benchmarkValues,
+              borderColor: 'rgb(156, 163, 175)',
+              borderDash: [5, 5],
+              tension: 0.3,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: 'Portfolio Value ($)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'nearest'
+          }
+        }
+      });
+    }
+    
+    // Create database architecture diagram
+    function createDatabaseArchitecture() {
+      const container = document.getElementById('db-architecture');
+      container.innerHTML = '';
+      
+      // Create cloud service
+      const cloud = document.createElement('div');
+      cloud.className = 'cloud';
+      cloud.innerHTML = '<i class="fas fa-cloud"></i> AWS Cloud';
+      container.appendChild(cloud);
+      
+      // Create main database
+      const mainDb = document.createElement('div');
+      mainDb.className = 'database';
+      mainDb.style.left = '38%';
+      mainDb.style.transform = 'translateX(-50%)';
+      mainDb.textContent = 'Main DB';
+      mainDb.id = 'main-db';
+      container.appendChild(mainDb);
+      
+      // Create tenant databases
+      const tenants = [
+        { id: 'globaltech', name: 'GlobalTech', left: '20%' },
+        { id: 'dataflow', name: 'DataFlow', left: '50%' },
+        { id: 'cloudinnovate', name: 'CloudInnovate', left: '80%' }
+      ];
+      
+      tenants.forEach(tenant => {
+        const tenantDb = document.createElement('div');
+        tenantDb.className = 'tenant-db';
+        tenantDb.style.left = tenant.left;
+        tenantDb.textContent = tenant.name;
+        tenantDb.id = `tenant-${tenant.id}`;
+        container.appendChild(tenantDb);
+        
+        // Create connection line
+        const connection = document.createElement('div');
+        connection.className = 'connection';
+        connection.style.left = tenant.left;
+        connection.style.top = '100px';
+        connection.style.width = '2px';
+        connection.style.height = '120px';
+        connection.style.background = 'linear-gradient(to bottom, #94a3b8, #cbd5e1)';
+        container.appendChild(connection);
+      });
+      
+      // Create schema tables
+      const schemaTables = [
+        { top: '120px', left: '15%', title: 'Tenant Schema', items: ['tenant_id', 'company_name', 'plan_type', 'billing_info'] },
+        { top: '120px', left: '45%', title: 'User Data', items: ['user_id', 'tenant_id', 'email', 'role', 'permissions'] },
+        { top: '120px', left: '75%', title: 'App Data', items: ['app_id', 'tenant_id', 'data', 'metadata', 'created_at'] }
+      ];
+      
+      schemaTables.forEach(schema => {
+        const table = document.createElement('div');
+        table.className = 'schema-table';
+        table.style.position = 'absolute';
+        table.style.top = schema.top;
+        table.style.left = schema.left;
+        
+        table.innerHTML = `
+          <h4>${schema.title}</h4>
+          <ul>
+            ${schema.items.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        `;
+        
+        container.appendChild(table);
+      });
+      
+      // Start data flow animation
+      startDataFlow();
+    }
+    
+    // Start data flow animation
+    function startDataFlow() {
+      dataFlowInterval = setInterval(() => {
+        const container = document.getElementById('db-architecture');
+        
+        // Create data flow element
+        const dataFlow = document.createElement('div');
+        dataFlow.className = 'data-flow';
+        
+        // Randomly select a tenant for data flow
+        const tenants = ['20%', '50%', '80%'];
+        const randomTenant = tenants[Math.floor(Math.random() * tenants.length)];
+        
+        dataFlow.style.left = randomTenant;
+        dataFlow.style.top = '100px';
+        
+        container.appendChild(dataFlow);
+        
+        // Remove data flow element after animation
+        setTimeout(() => {
+          if (dataFlow.parentNode) {
+            dataFlow.parentNode.removeChild(dataFlow);
+          }
+        }, 3000);
+      }, 800);
+    }
+    
+    // Start live updates for chart and metrics
+    function startLiveUpdates() {
+      // Update chart data every 2 seconds
+      dataUpdateInterval = setInterval(updateChartData, 2000);
+      
+      // Update metrics every 3 seconds
+      chartUpdateInterval = setInterval(updateMetrics, 3000);
+    }
+    
+    // Stop live updates
+    function stopLiveUpdates() {
+      clearInterval(dataUpdateInterval);
+      clearInterval(chartUpdateInterval);
+    }
+    
+    // Update chart with new data point
+    function updateChartData() {
+      if (!tradingChart) return;
+      
+      // Remove oldest data point
+      if (chartData.dates.length > 30) {
+        chartData.dates.shift();
+        chartData.portfolioValues.shift();
+        chartData.benchmarkValues.shift();
+      }
+      
+      // Add new time label
+      const now = new Date();
+      const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      chartData.dates.push(timeString);
+      
+      // Add new data points with realistic fluctuations
+      // AI Portfolio - more consistent growth
+      const aiChange = (Math.random() * 2 - 0.8) / 100;
+      currentValue = currentValue * (1 + aiChange);
+      chartData.portfolioValues.push(currentValue);
+      
+      // Benchmark - more volatile
+      const benchmarkChange = (Math.random() * 4 - 2) / 100;
+      benchmarkValue = benchmarkValue * (1 + benchmarkChange);
+      chartData.benchmarkValues.push(benchmarkValue);
+      
+      // Update chart
+      tradingChart.update();
+    }
+    
+    // Update performance metrics
+    function updateMetrics() {
+      // Calculate performance metrics based on current data
+      const portfolioChange = ((currentValue - 10000) / 10000 * 100).toFixed(2);
+      const benchmarkChange = ((benchmarkValue - 10000) / 10000 * 100).toFixed(2);
+      
+      // Update metrics with slight variations
+      const winRate = 75 + Math.random() * 5;
+      const avgReturn = 3 + Math.random() * 1;
+      const sharpeRatio = 1.8 + Math.random() * 0.6;
+      const maxDrawdown = -7 - Math.random() * 3;
+      
+      document.getElementById('win-rate').textContent = `${winRate.toFixed(1)}%`;
+      document.getElementById('avg-return').textContent = `+${avgReturn.toFixed(1)}%`;
+      document.getElementById('sharpe-ratio').textContent = sharpeRatio.toFixed(1);
+      document.getElementById('max-drawdown').textContent = `${maxDrawdown.toFixed(1)}%`;
+    }
+    
+    // Simulate live data updates for trading demo
+    function updateTradingData() {
+      const stocks = document.querySelectorAll('#trading-demo-modal .flex.justify-between');
+      stocks.forEach(stock => {
+        const priceElement = stock.querySelector('span:last-child');
+        if (priceElement) {
+          const isPositive = priceElement.classList.contains('text-green-600');
+          const change = (Math.random() * 2 - 1) * 0.5;
+          const newValue = isPositive ? Math.max(0.1, change) : Math.min(-0.1, change);
+          
+          if (newValue >= 0) {
+            priceElement.classList.remove('text-red-600');
+            priceElement.classList.add('text-green-600');
+            priceElement.textContent = `$${(Math.random() * 500 + 100).toFixed(2)} (+${newValue.toFixed(2)}%)`;
+          } else {
+            priceElement.classList.remove('text-green-600');
+            priceElement.classList.add('text-red-600');
+            priceElement.textContent = `$${(Math.random() * 500 + 100).toFixed(2)} (${newValue.toFixed(2)}%)`;
+          }
+        }
+      });
+    }
+    
+    // Update data every 3 seconds if modal is open
+    setInterval(() => {
+      if (document.getElementById('trading-demo-modal').style.display === 'block') {
+        updateTradingData();
+      }
+    }, 3000);
+    
+    // Tenant selection in SaaS demo
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.tenant-card')) {
+        const cards = document.querySelectorAll('.tenant-card');
+        cards.forEach(card => {
+          card.classList.remove('bg-blue-50', 'border-blue-200');
+          card.classList.add('bg-white', 'border-slate-200');
+        });
+        
+        const selectedCard = e.target.closest('.tenant-card');
+        selectedCard.classList.remove('bg-white', 'border-slate-200');
+        selectedCard.classList.add('bg-blue-50', 'border-blue-200');
+        
+        // Update tenant name
+        const tenantName = selectedCard.querySelector('h4').textContent;
+        document.getElementById('current-tenant').textContent = tenantName;
+        
+        // Highlight the corresponding tenant database
+        const tenantId = selectedCard.getAttribute('data-tenant');
+        const tenantDb = document.getElementById(`tenant-${tenantId}`);
+        if (tenantDb) {
+          tenantDb.classList.add('highlight');
+          setTimeout(() => {
+            tenantDb.classList.remove('highlight');
+          }, 2000);
+        }
+      }
+    });
+    
+    // Execute trade button functionality
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'execute-trade') {
+        const stockSelect = document.querySelector('#stock-select');
+        const amountInput = document.querySelector('#trade-amount');
+        const strategySelect = document.querySelector('#ai-strategy');
+        
+        const stock = stockSelect.value;
+        const amount = amountInput.value;
+        const strategy = strategySelect.value;
+        
+        // Simulate AI processing
+        const tradingResults = document.getElementById('trading-results');
+        tradingResults.classList.remove('hidden');
+        tradingResults.innerHTML = `
+          <h4 class="font-bold mb-2">Trade Execution Results</h4>
+          <p>AI analysis complete. Executing trade for ${stock} with $${amount} using ${strategy} strategy.</p>
+          <p>Predicted success probability: ${Math.floor(70 + Math.random() * 25)}%</p>
+          <p>Estimated return: ${(Math.random() * 5).toFixed(2)}%</p>
+          <p class="text-green-600 mt-2">Trade executed successfully with 35ms latency</p>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

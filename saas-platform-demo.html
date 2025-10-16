@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Tenant SaaS Platform Demo - Moses Achi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    html { scroll-behavior: smooth; }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow: auto;
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 900px;
+      position: relative;
+      animation: modalFade 0.3s;
+    }
+    
+    @keyframes modalFade {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #777;
+    }
+    
+    .tenant-card {
+      transition: all 0.3s ease;
+    }
+    
+    .tenant-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Database Architecture Styles */
+    .db-architecture {
+      position: relative;
+      height: 320px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 20px;
+    }
+    
+    .cloud {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      font-weight: bold;
+      color: #3b82f6;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .database {
+      position: absolute;
+      bottom: 20px;
+      width: 120px;
+      height: 60px;
+      background: #1e40af;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tenant-db {
+      position: absolute;
+      bottom: 20px;
+      width: 100px;
+      height: 50px;
+      background: #60a5fa;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.8rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .connection {
+      position: absolute;
+      background: #94a3b8;
+      transform-origin: top left;
+    }
+    
+    .data-flow {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #3b82f6;
+      border-radius: 50%;
+      animation: flow 3s linear infinite;
+    }
+    
+    @keyframes flow {
+      0% { transform: translateY(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(200px); opacity: 0; }
+    }
+    
+    .schema-table {
+      background: white;
+      border-radius: 4px;
+      padding: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-size: 0.7rem;
+      width: 100px;
+    }
+    
+    .schema-table h4 {
+      margin: 0 0 4px 0;
+      font-weight: bold;
+      color: #1e40af;
+    }
+    
+    .schema-table ul {
+      margin: 0;
+      padding-left: 12px;
+    }
+    
+    .schema-table li {
+      margin: 2px 0;
+    }
+    
+    .highlight {
+      animation: highlight 2s ease-in-out;
+    }
+    
+    @keyframes highlight {
+      0% { background-color: transparent; }
+      50% { background-color: rgba(96, 165, 250, 0.3); }
+      100% { background-color: transparent; }
+    }
+    
+    .architecture-diagram {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 2rem;
+      color: white;
+    }
+    
+    .architecture-layer {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="font-bold text-xl">Moses Achi</div>
+      <div class="space-x-6">
+        <a href="#demo" class="hover:text-blue-600">Demo</a>
+        <a href="#architecture" class="hover:text-blue-600">Architecture</a>
+        <a href="#features" class="hover:text-blue-600">Features</a>
+        <a href="https://mosesachizz.github.io" class="hover:text-blue-600">Back to Portfolio</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="min-h-screen flex items-center justify-center pt-20">
+    <div class="text-center max-w-4xl mx-auto px-6">
+      <h1 class="text-5xl font-bold mb-6">Multi-Tenant SaaS Platform</h1>
+      <p class="text-xl text-slate-600 mb-8">
+        Secure, serverless SaaS backend on AWS with automated billing, data isolation, 
+        and scalable self-service onboarding for thousands of tenants.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4 mb-8">
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">AWS</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">DynamoDB</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Lambda</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Serverless</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">PostgreSQL</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Redis</span>
+      </div>
+      <button onclick="openSaaSDemo()" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold">
+        Launch Platform Demo
+      </button>
+    </div>
+  </section>
+
+  <!-- Demo Section -->
+  <section id="demo" class="py-20 px-6 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Platform Management Dashboard</h2>
+      <div class="bg-slate-100 p-8 rounded-xl">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-4">Tenant Management</h3>
+            <div class="space-y-4">
+              <div class="tenant-card p-4 bg-blue-50 border border-blue-200 rounded cursor-pointer" data-tenant="globaltech">
+                <h4 class="font-medium">GlobalTech Inc.</h4>
+                <p class="text-sm text-slate-600">Enterprise Plan</p>
+                <div class="flex justify-between items-center mt-2">
+                  <span class="text-xs text-slate-500">245 users</span>
+                  <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+                </div>
+              </div>
+              <div class="tenant-card p-4 bg-white border border-slate-200 rounded cursor-pointer" data-tenant="dataflow">
+                <h4 class="font-medium">DataFlow Systems</h4>
+                <p class="text-sm text-slate-600">Business Plan</p>
+                <div class="flex justify-between items-center mt-2">
+                  <span class="text-xs text-slate-500">128 users</span>
+                  <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+                </div>
+              </div>
+              <div class="tenant-card p-4 bg-white border border-slate-200 rounded cursor-pointer" data-tenant="cloudinnovate">
+                <h4 class="font-medium">CloudInnovate Ltd.</h4>
+                <p class="text-sm text-slate-600">Startup Plan</p>
+                <div class="flex justify-between items-center mt-2">
+                  <span class="text-xs text-slate-500">42 users</span>
+                  <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="md:col-span-2 bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-4">Tenant Details: <span id="current-tenant" class="text-blue-600">GlobalTech Inc.</span></h3>
+            <div class="grid grid-cols-3 gap-4 mb-6">
+              <div class="bg-slate-100 p-4 rounded text-center">
+                <div class="text-2xl font-bold text-blue-600">245</div>
+                <div class="text-sm text-slate-600">Active Users</div>
+              </div>
+              <div class="bg-slate-100 p-4 rounded text-center">
+                <div class="text-2xl font-bold text-blue-600">2.4M</div>
+                <div class="text-sm text-slate-600">API Requests</div>
+              </div>
+              <div class="bg-slate-100 p-4 rounded text-center">
+                <div class="text-2xl font-bold text-blue-600">348GB</div>
+                <div class="text-sm text-slate-600">Storage Used</div>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <h4 class="font-medium mb-3">Usage-Based Billing</h4>
+              <div class="bg-slate-100 p-4 rounded">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-slate-700">Current billing cycle</span>
+                  <span class="font-bold text-blue-600">$4,832.50</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                  <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+                </div>
+                <p class="text-sm text-slate-600 mt-2">65% of monthly allocation used</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 class="font-medium mb-3">Recent Activity</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between p-2 bg-slate-50 rounded">
+                  <span>User login spike detected</span>
+                  <span class="text-slate-500">2 min ago</span>
+                </div>
+                <div class="flex justify-between p-2 bg-slate-50 rounded">
+                  <span>API rate limit increased</span>
+                  <span class="text-slate-500">1 hour ago</span>
+                </div>
+                <div class="flex justify-between p-2 bg-slate-50 rounded">
+                  <span>Storage threshold warning</span>
+                  <span class="text-slate-500">3 hours ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-8 bg-white p-6 rounded-lg shadow">
+          <h3 class="text-lg font-bold mb-4">Data Isolation Architecture</h3>
+          <div class="db-architecture" id="db-architecture">
+            <!-- Database architecture will be rendered here -->
+          </div>
+          <div class="mt-6 grid grid-cols-3 gap-4 text-center">
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Isolation Method</p>
+              <p class="font-bold text-blue-600">Schema-based</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Database Engine</p>
+              <p class="font-bold text-blue-600">PostgreSQL</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Tenant Count</p>
+              <p class="font-bold text-blue-600">3,450+</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Section -->
+  <section id="architecture" class="py-20 px-6 bg-slate-100">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">System Architecture</h2>
+      <div class="architecture-diagram">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="architecture-layer">
+            <h3 class="font-bold mb-3">Presentation Layer</h3>
+            <ul class="text-sm space-y-2">
+              <li>React.js Frontend</li>
+              <li>Tailwind CSS</li>
+              <li>Progressive Web App</li>
+            </ul>
+          </div>
+          <div class="architecture-layer">
+            <h3 class="font-bold mb-3">API Gateway</h3>
+            <ul class="text-sm space-y-2">
+              <li>AWS API Gateway</li>
+              <li>JWT Authentication</li>
+              <li>Rate Limiting</li>
+            </ul>
+          </div>
+          <div class="architecture-layer">
+            <h3 class="font-bold mb-3">Business Logic</h3>
+            <ul class="text-sm space-y-2">
+              <li>AWS Lambda</li>
+              <li>Node.js/Python</li>
+              <li>Tenant Context</li>
+            </ul>
+          </div>
+          <div class="architecture-layer">
+            <h3 class="font-bold mb-3">Data Layer</h3>
+            <ul class="text-sm space-y-2">
+              <li>PostgreSQL</li>
+              <li>DynamoDB</li>
+              <li>Redis Cache</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-12 grid md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-xl font-bold mb-4">Multi-Tenant Data Isolation</h3>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <i class="fas fa-database text-blue-500 mt-1 mr-3"></i>
+              <div>
+                <h4 class="font-semibold">Schema-based Isolation</h4>
+                <p class="text-slate-600 text-sm">Each tenant has separate database schema with complete data isolation</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fas fa-shield-alt text-blue-500 mt-1 mr-3"></i>
+              <div>
+                <h4 class="font-semibold">Row-level Security</h4>
+                <p class="text-slate-600 text-sm">Database-level security policies enforce tenant data separation</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fas fa-bolt text-blue-500 mt-1 mr-3"></i>
+              <div>
+                <h4 class="font-semibold">Performance Optimization</h4>
+                <p class="text-slate-600 text-sm">Connection pooling and query optimization for multi-tenant workloads</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-xl font-bold mb-4">Scalability Features</h3>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <i class="fas fa-expand text-green-500 mt-1 mr-3"></i>
+              <div>
+                <h4 class="font-semibold">Auto-scaling</h4>
+                <p class="text-slate-600 text-sm">Automatic scaling based on tenant usage patterns and load</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fas fa-money-bill-wave text-green-500 mt-1 mr-3"></i>
+              <div>
+                <h4 class="font-semibold">Usage-based Billing</h4>
+                <p class="text-slate-600 text-sm">Real-time usage tracking and automated billing cycles</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fas fa-rocket text-green-500 mt-1 mr-3"></i>
+              <div>
+                <h4 class="font-semibold">Serverless Architecture</h4>
+                <p class="text-slate-600 text-sm">No infrastructure management with pay-per-use pricing</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 px-6 bg-white">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Platform Features</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-users text-blue-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Multi-Tenant</h3>
+          <p class="text-slate-600">Support thousands of tenants with complete data isolation and security</p>
+        </div>
+        
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-cloud text-green-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Serverless</h3>
+          <p class="text-slate-600">Built on AWS serverless technologies for infinite scalability</p>
+        </div>
+        
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-lock text-purple-600 text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Secure</h3>
+          <p class="text-slate-600">Enterprise-grade security with encryption, IAM, and compliance</p>
+        </div>
+      </div>
+      
+      <div class="mt-12 text-center">
+        <a href="https://github.com/mosesachizz/multi-tenant-saas-platform" target="_blank" 
+           class="inline-flex items-center px-6 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors">
+          <i class="fab fa-github mr-2"></i>
+          View Source Code on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-800 text-white py-8 text-center">
+    <div class="max-w-4xl mx-auto px-6">
+      <p>&copy; 2025 Moses Achi. Multi-Tenant SaaS Platform Demo.</p>
+      <p class="mt-2 text-slate-400">
+        Enterprise-grade SaaS architecture with complete data isolation.
+      </p>
+    </div>
+  </footer>
+
+  <!-- SaaS Demo Modal -->
+  <div id="saas-demo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('saas-demo-modal')">&times;</span>
+      <h2 class="text-2xl font-bold mb-4">Multi-Tenant SaaS Platform - Full Demo</h2>
+      <p class="text-slate-600 mb-6">Complete platform management interface with real-time analytics.</p>
+      
+      <div class="bg-slate-100 p-6 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3">Tenants</h3>
+            <div class="space-y-3">
+              <div class="tenant-card p-3 bg-blue-50 border border-blue-200 rounded cursor-pointer" data-tenant="globaltech">
+                <h4 class="font-medium">GlobalTech Inc.</h4>
+                <p class="text-sm text-slate-600">Enterprise Plan</p>
+              </div>
+              <div class="tenant-card p-3 bg-white border border-slate-200 rounded cursor-pointer" data-tenant="dataflow">
+                <h4 class="font-medium">DataFlow Systems</h4>
+                <p class="text-sm text-slate-600">Business Plan</p>
+              </div>
+              <div class="tenant-card p-3 bg-white border border-slate-200 rounded cursor-pointer" data-tenant="cloudinnovate">
+                <h4 class="font-medium">CloudInnovate Ltd.</h4>
+                <p class="text-sm text-slate-600">Startup Plan</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="md:col-span-2 bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3">Tenant Details: <span id="current-tenant-modal">GlobalTech Inc.</span></h3>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+              <div class="bg-slate-100 p-3 rounded text-center">
+                <div class="text-2xl font-bold">245</div>
+                <div class="text-sm text-slate-600">Users</div>
+              </div>
+              <div class="bg-slate-100 p-3 rounded text-center">
+                <div class="text-2xl font-bold">2.4M</div>
+                <div class="text-sm text-slate-600">API Requests</div>
+              </div>
+              <div class="bg-slate-100 p-3 rounded text-center">
+                <div class="text-2xl font-bold">348GB</div>
+                <div class="text-sm text-slate-600">Storage</div>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="font-medium mb-2">Usage-Based Billing</h4>
+              <p class="text-slate-600">Current billing cycle: $4,832.50</p>
+              <div class="w-full bg-slate-200 rounded-full h-2.5 mt-2">
+                <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+              </div>
+              <p class="text-sm text-slate-600 mt-1">65% of monthly allocation used</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 bg-white p-4 rounded-lg shadow">
+          <h3 class="text-lg font-bold mb-3">Data Isolation Architecture</h3>
+          <div class="db-architecture" id="db-architecture-modal">
+            <!-- Database architecture will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let dataFlowInterval;
+
+    // Modal functionality
+    function openSaaSDemo() {
+      document.getElementById('saas-demo-modal').style.display = 'block';
+      // Initialize database architecture diagram
+      setTimeout(createModalDatabaseArchitecture, 100);
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      clearInterval(dataFlowInterval);
+    }
+    
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        clearInterval(dataFlowInterval);
+      }
+    }
+    
+    // Create database architecture diagram for main page
+    function createDatabaseArchitecture() {
+      const container = document.getElementById('db-architecture');
+      renderDatabaseArchitecture(container);
+      startDataFlow(container);
+    }
+    
+    // Create database architecture diagram for modal
+    function createModalDatabaseArchitecture() {
+      const container = document.getElementById('db-architecture-modal');
+      renderDatabaseArchitecture(container);
+      startDataFlow(container);
+    }
+    
+    // Render database architecture
+    function renderDatabaseArchitecture(container) {
+      container.innerHTML = '';
+      
+      // Create cloud service
+      const cloud = document.createElement('div');
+      cloud.className = 'cloud';
+      cloud.innerHTML = '<i class="fas fa-cloud"></i> AWS Cloud';
+      container.appendChild(cloud);
+      
+      // Create main database
+      const mainDb = document.createElement('div');
+      mainDb.className = 'database';
+      mainDb.style.left = '38%';
+      mainDb.style.transform = 'translateX(-50%)';
+      mainDb.textContent = 'Main DB';
+      mainDb.id = 'main-db';
+      container.appendChild(mainDb);
+      
+      // Create tenant databases
+      const tenants = [
+        { id: 'globaltech', name: 'GlobalTech', left: '20%' },
+        { id: 'dataflow', name: 'DataFlow', left: '50%' },
+        { id: 'cloudinnovate', name: 'CloudInnovate', left: '80%' }
+      ];
+      
+      tenants.forEach(tenant => {
+        const tenantDb = document.createElement('div');
+        tenantDb.className = 'tenant-db';
+        tenantDb.style.left = tenant.left;
+        tenantDb.textContent = tenant.name;
+        tenantDb.id = `tenant-${tenant.id}`;
+        container.appendChild(tenantDb);
+        
+        // Create connection line
+        const connection = document.createElement('div');
+        connection.className = 'connection';
+        connection.style.left = tenant.left;
+        connection.style.top = '100px';
+        connection.style.width = '2px';
+        connection.style.height = '120px';
+        connection.style.background = 'linear-gradient(to bottom, #94a3b8, #cbd5e1)';
+        container.appendChild(connection);
+      });
+      
+      // Create schema tables
+      const schemaTables = [
+        { top: '120px', left: '15%', title: 'Tenant Schema', items: ['tenant_id', 'company_name', 'plan_type', 'billing_info'] },
+        { top: '120px', left: '45%', title: 'User Data', items: ['user_id', 'tenant_id', 'email', 'role', 'permissions'] },
+        { top: '120px', left: '75%', title: 'App Data', items: ['app_id', 'tenant_id', 'data', 'metadata', 'created_at'] }
+      ];
+      
+      schemaTables.forEach(schema => {
+        const table = document.createElement('div');
+        table.className = 'schema-table';
+        table.style.position = 'absolute';
+        table.style.top = schema.top;
+        table.style.left = schema.left;
+        
+        table.innerHTML = `
+          <h4>${schema.title}</h4>
+          <ul>
+            ${schema.items.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        `;
+        
+        container.appendChild(table);
+      });
+    }
+    
+    // Start data flow animation
+    function startDataFlow(container) {
+      dataFlowInterval = setInterval(() => {
+        // Create data flow element
+        const dataFlow = document.createElement('div');
+        dataFlow.className = 'data-flow';
+        
+        // Randomly select a tenant for data flow
+        const tenants = ['20%', '50%', '80%'];
+        const randomTenant = tenants[Math.floor(Math.random() * tenants.length)];
+        
+        dataFlow.style.left = randomTenant;
+        dataFlow.style.top = '100px';
+        
+        container.appendChild(dataFlow);
+        
+        // Remove data flow element after animation
+        setTimeout(() => {
+          if (dataFlow.parentNode) {
+            dataFlow.parentNode.removeChild(dataFlow);
+          }
+        }, 3000);
+      }, 800);
+    }
+    
+    // Tenant selection functionality
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.tenant-card')) {
+        const cards = document.querySelectorAll('.tenant-card');
+        cards.forEach(card => {
+          card.classList.remove('bg-blue-50', 'border-blue-200');
+          card.classList.add('bg-white', 'border-slate-200');
+        });
+        
+        const selectedCard = e.target.closest('.tenant-card');
+        selectedCard.classList.remove('bg-white', 'border-slate-200');
+        selectedCard.classList.add('bg-blue-50', 'border-blue-200');
+        
+        // Update tenant name
+        const tenantName = selectedCard.querySelector('h4').textContent;
+        const tenantId = selectedCard.getAttribute('data-tenant');
+        
+        // Update tenant details based on which tenant was selected
+        updateTenantDetails(tenantId, tenantName);
+        
+        // Update both main page and modal if they exist
+        const currentTenantElement = document.getElementById('current-tenant');
+        if (currentTenantElement) {
+          currentTenantElement.textContent = tenantName;
+        }
+        
+        const currentTenantModalElement = document.getElementById('current-tenant-modal');
+        if (currentTenantModalElement) {
+          currentTenantModalElement.textContent = tenantName;
+        }
+        
+        // Highlight the corresponding tenant database
+        const tenantDb = document.getElementById(`tenant-${tenantId}`);
+        if (tenantDb) {
+          tenantDb.classList.add('highlight');
+          setTimeout(() => {
+            tenantDb.classList.remove('highlight');
+          }, 2000);
+        }
+      }
+    });
+    
+    // Update tenant details based on selection
+    function updateTenantDetails(tenantId, tenantName) {
+      // Define tenant-specific data
+      const tenantData = {
+        globaltech: {
+          users: '245',
+          apiRequests: '2.4M',
+          storage: '348GB',
+          billing: '$4,832.50',
+          usagePercent: '65'
+        },
+        dataflow: {
+          users: '128',
+          apiRequests: '1.2M',
+          storage: '215GB',
+          billing: '$2,150.00',
+          usagePercent: '45'
+        },
+        cloudinnovate: {
+          users: '42',
+          apiRequests: '450K',
+          storage: '89GB',
+          billing: '$899.00',
+          usagePercent: '22'
+        }
+      };
+      
+      const data = tenantData[tenantId];
+      
+      // Update main page elements
+      updateTenantElements('', data);
+      updateTenantElements('-modal', data);
+    }
+    
+    // Update tenant elements
+    function updateTenantElements(suffix, data) {
+      const usersElement = document.querySelector(`.bg-slate-100:nth-child(1) .text-2xl${suffix}`);
+      const apiElement = document.querySelector(`.bg-slate-100:nth-child(2) .text-2xl${suffix}`);
+      const storageElement = document.querySelector(`.bg-slate-100:nth-child(3) .text-2xl${suffix}`);
+      const billingElement = document.querySelector(`.text-slate-600${suffix}`);
+      const usageBar = document.querySelector(`.bg-blue-600${suffix}`);
+      const usageText = document.querySelector(`.text-sm.text-slate-600.mt-1${suffix}`);
+      
+      if (usersElement) usersElement.textContent = data.users;
+      if (apiElement) apiElement.textContent = data.apiRequests;
+      if (storageElement) storageElement.textContent = data.storage;
+      if (billingElement) billingElement.textContent = `Current billing cycle: ${data.billing}`;
+      if (usageBar) usageBar.style.width = `${data.usagePercent}%`;
+      if (usageText) usageText.textContent = `${data.usagePercent}% of monthly allocation used`;
+    }
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      createDatabaseArchitecture();
+    });
+  </script>
+</body>
+
+</html>
+

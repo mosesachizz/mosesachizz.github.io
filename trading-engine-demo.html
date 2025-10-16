@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distributed AI Trading Engine Demo - Moses Achi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      overflow: auto;
+    }
+    
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 900px;
+      position: relative;
+      animation: modalFade 0.3s;
+    }
+    
+    @keyframes modalFade {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #777;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 200px;
+      width: 100%;
+    }
+    
+    .live-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-white border-b border-slate-200 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="font-bold text-xl">Moses Achi</div>
+      <div class="space-x-6">
+        <a href="#demo" class="hover:text-blue-600">Demo</a>
+        <a href="#about" class="hover:text-blue-600">About Project</a>
+        <a href="https://mosesachizz.github.io" class="hover:text-blue-600">Back to Portfolio</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="hero" class="min-h-screen flex items-center justify-center pt-20">
+    <div class="text-center max-w-4xl mx-auto px-6">
+      <h1 class="text-5xl font-bold mb-6">Distributed AI Trading Engine</h1>
+      <p class="text-xl text-slate-600 mb-8">
+        High-frequency trading engine using Python, TensorFlow, and Kafka with sub-50ms latency, 
+        adaptive risk models, and millions of daily transactions.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4 mb-8">
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Python</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">TensorFlow</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Kafka</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">AWS</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">Redis</span>
+        <span class="px-4 py-2 bg-blue-100 text-blue-700 rounded">PostgreSQL</span>
+      </div>
+      <button onclick="openTradingDemo()" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold">
+        Launch Live Demo
+      </button>
+    </div>
+  </section>
+
+  <!-- Demo Section -->
+  <section id="demo" class="py-20 px-6 bg-white">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Interactive Demo</h2>
+      <div class="bg-slate-100 p-8 rounded-xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-4 flex items-center">
+              <span class="live-indicator"></span> Real-time Market Data
+            </h3>
+            <div class="space-y-4">
+              <div class="flex justify-between items-center p-3 bg-slate-50 rounded">
+                <span class="font-semibold">AAPL</span>
+                <span class="text-green-600 font-mono">$173.52 (+1.2%)</span>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-slate-50 rounded">
+                <span class="font-semibold">MSFT</span>
+                <span class="text-green-600 font-mono">$412.43 (+0.8%)</span>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-slate-50 rounded">
+                <span class="font-semibold">TSLA</span>
+                <span class="text-red-600 font-mono">$180.11 (-2.1%)</span>
+              </div>
+              <div class="flex justify-between items-center p-3 bg-slate-50 rounded">
+                <span class="font-semibold">NVDA</span>
+                <span class="text-green-600 font-mono">$918.35 (+3.4%)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-4">AI Trading Interface</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Select Stock</label>
+                <select id="stock-select" class="w-full p-3 border rounded-lg">
+                  <option>AAPL</option>
+                  <option>MSFT</option>
+                  <option>TSLA</option>
+                  <option>NVDA</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Investment Amount ($)</label>
+                <input id="trade-amount" type="number" value="1000" class="w-full p-3 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">AI Strategy</label>
+                <select id="ai-strategy" class="w-full p-3 border rounded-lg">
+                  <option>Momentum Trading</option>
+                  <option>Mean Reversion</option>
+                  <option>Volatility Arbitrage</option>
+                  <option>Neural Network Predictor</option>
+                </select>
+              </div>
+              <button id="execute-trade" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold">
+                Execute AI Trade
+              </button>
+            </div>
+            <div id="trading-results" class="mt-4 hidden p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 class="font-bold mb-2 text-green-800">Trade Execution Results</h4>
+              <p class="text-green-700">Trade executed successfully with 35ms latency</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-8 bg-white p-6 rounded-lg shadow">
+          <h3 class="text-lg font-bold mb-4 flex items-center">
+            <span class="live-indicator"></span> Performance Metrics
+          </h3>
+          <div class="chart-container">
+            <canvas id="trading-chart"></canvas>
+          </div>
+          <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Win Rate</p>
+              <p id="win-rate" class="text-2xl font-bold text-green-600">78.2%</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Avg. Return</p>
+              <p id="avg-return" class="text-2xl font-bold text-green-600">+3.4%</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Sharpe Ratio</p>
+              <p id="sharpe-ratio" class="text-2xl font-bold text-blue-600">2.1</p>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-lg">
+              <p class="text-sm text-slate-600">Max Drawdown</p>
+              <p id="max-drawdown" class="text-2xl font-bold text-red-600">-8.5%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Project -->
+  <section id="about" class="py-20 px-6 bg-slate-100">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">About This Project</h2>
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-xl font-bold mb-4">Technical Architecture</h3>
+          <ul class="space-y-3 text-slate-600">
+            <li class="flex items-start">
+              <i class="fas fa-microchip text-blue-500 mt-1 mr-3"></i>
+              <span>Real-time data processing with Apache Kafka</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-brain text-blue-500 mt-1 mr-3"></i>
+              <span>TensorFlow/PyTorch for ML predictions</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-bolt text-blue-500 mt-1 mr-3"></i>
+              <span>Sub-50ms trade execution latency</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-cloud text-blue-500 mt-1 mr-3"></i>
+              <span>AWS ECS with auto-scaling</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-database text-blue-500 mt-1 mr-3"></i>
+              <span>Redis for caching, PostgreSQL for storage</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h3 class="text-xl font-bold mb-4">Key Features</h3>
+          <ul class="space-y-3 text-slate-600">
+            <li class="flex items-start">
+              <i class="fas fa-chart-line text-green-500 mt-1 mr-3"></i>
+              <span>25% improvement in trading accuracy</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-shield-alt text-green-500 mt-1 mr-3"></i>
+              <span>Adaptive risk management models</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-robot text-green-500 mt-1 mr-3"></i>
+              <span>Multiple AI trading strategies</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-tachometer-alt text-green-500 mt-1 mr-3"></i>
+              <span>Real-time performance monitoring</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fas fa-exchange-alt text-green-500 mt-1 mr-3"></i>
+              <span>Millions of daily transactions</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="mt-8 text-center">
+        <a href="https://github.com/mosesachizz/distributed-ai-trading-engine" target="_blank" 
+           class="inline-flex items-center px-6 py-3 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors">
+          <i class="fab fa-github mr-2"></i>
+          View Source Code on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-800 text-white py-8 text-center">
+    <div class="max-w-4xl mx-auto px-6">
+      <p>&copy; 2025 Moses Achi. Distributed AI Trading Engine Demo.</p>
+      <p class="mt-2 text-slate-400">
+        This is a simulation for demonstration purposes only.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Trading Demo Modal -->
+  <div id="trading-demo-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('trading-demo-modal')">&times;</span>
+      <h2 class="text-2xl font-bold mb-4">Distributed AI Trading Engine - Full Demo</h2>
+      <p class="text-slate-600 mb-6">Advanced trading interface with real-time AI decision making.</p>
+      
+      <div class="bg-slate-100 p-6 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3 flex items-center">
+              <span class="live-indicator"></span> Real-time Market Data
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span>AAPL</span>
+                <span class="text-green-600">$173.52 (+1.2%)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>MSFT</span>
+                <span class="text-green-600">$412.43 (+0.8%)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>TSLA</span>
+                <span class="text-red-600">$180.11 (-2.1%)</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span>NVDA</span>
+                <span class="text-green-600">$918.35 (+3.4%)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-lg font-bold mb-3">AI Trading Interface</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Select Stock</label>
+                <select id="stock-select-modal" class="w-full p-2 border rounded">
+                  <option>AAPL</option>
+                  <option>MSFT</option>
+                  <option>TSLA</option>
+                  <option>NVDA</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Investment Amount ($)</label>
+                <input id="trade-amount-modal" type="number" value="1000" class="w-full p-2 border rounded">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">AI Strategy</label>
+                <select id="ai-strategy-modal" class="w-full p-2 border rounded">
+                  <option>Momentum Trading</option>
+                  <option>Mean Reversion</option>
+                  <option>Volatility Arbitrage</option>
+                </select>
+              </div>
+              <button id="execute-trade-modal" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Execute Trade</button>
+            </div>
+            <div id="trading-results-modal" class="mt-4 hidden">
+              <h4 class="font-bold mb-2">Trade Execution Results</h4>
+              <p class="text-green-600">Trade executed successfully with 35ms latency</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-6 bg-white p-4 rounded-lg shadow">
+          <h3 class="text-lg font-bold mb-3 flex items-center">
+            <span class="live-indicator"></span> Performance Metrics
+          </h3>
+          <div class="chart-container">
+            <canvas id="trading-chart-modal"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables for chart and data
+    let tradingChart;
+    let modalTradingChart;
+    let chartData = {
+      dates: [],
+      portfolioValues: [],
+      benchmarkValues: []
+    };
+    let modalChartData = {
+      dates: [],
+      portfolioValues: [],
+      benchmarkValues: []
+    };
+    let currentValue = 10000;
+    let benchmarkValue = 10000;
+    let modalCurrentValue = 10000;
+    let modalBenchmarkValue = 10000;
+    let dataUpdateInterval;
+    let chartUpdateInterval;
+    let modalDataUpdateInterval;
+
+    // Modal functionality
+    function openTradingDemo() {
+      document.getElementById('trading-demo-modal').style.display = 'block';
+      // Initialize the chart when modal opens
+      setTimeout(createModalTradingChart, 100);
+      // Start live updates
+      startModalLiveUpdates();
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+      // Stop live updates when modal closes
+      stopModalLiveUpdates();
+    }
+    
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        // Stop live updates when modal closes
+        stopModalLiveUpdates();
+      }
+    }
+    
+    // Initialize main page chart
+    function initializeMainChart() {
+      const ctx = document.getElementById('trading-chart').getContext('2d');
+      
+      // Initialize chart data
+      chartData.dates = [];
+      chartData.portfolioValues = [];
+      chartData.benchmarkValues = [];
+      
+      currentValue = 10000;
+      benchmarkValue = 10000;
+      
+      // Generate initial data points
+      for (let i = 0; i < 20; i++) {
+        chartData.dates.push(`T-${20-i}`);
+        
+        // AI Portfolio - more consistent growth with some volatility
+        const aiChange = (Math.random() * 3 - 1) / 100;
+        currentValue = currentValue * (1 + aiChange);
+        chartData.portfolioValues.push(currentValue);
+        
+        // Benchmark - more volatile
+        const benchmarkChange = (Math.random() * 5 - 2.5) / 100;
+        benchmarkValue = benchmarkValue * (1 + benchmarkChange);
+        chartData.benchmarkValues.push(benchmarkValue);
+      }
+      
+      // Create the chart
+      tradingChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartData.dates,
+          datasets: [
+            {
+              label: 'AI Trading Portfolio',
+              data: chartData.portfolioValues,
+              borderColor: 'rgb(59, 130, 246)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            },
+            {
+              label: 'Market Benchmark',
+              data: chartData.benchmarkValues,
+              borderColor: 'rgb(156, 163, 175)',
+              borderDash: [5, 5],
+              tension: 0.3,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: 'Portfolio Value ($)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'nearest'
+          }
+        }
+      });
+    }
+    
+    // Create modal trading chart
+    function createModalTradingChart() {
+      const ctx = document.getElementById('trading-chart-modal').getContext('2d');
+      
+      // Initialize chart data
+      modalChartData.dates = [];
+      modalChartData.portfolioValues = [];
+      modalChartData.benchmarkValues = [];
+      
+      modalCurrentValue = 10000;
+      modalBenchmarkValue = 10000;
+      
+      // Generate initial data points
+      for (let i = 0; i < 20; i++) {
+        modalChartData.dates.push(`T-${20-i}`);
+        
+        // AI Portfolio - more consistent growth with some volatility
+        const aiChange = (Math.random() * 3 - 1) / 100;
+        modalCurrentValue = modalCurrentValue * (1 + aiChange);
+        modalChartData.portfolioValues.push(modalCurrentValue);
+        
+        // Benchmark - more volatile
+        const benchmarkChange = (Math.random() * 5 - 2.5) / 100;
+        modalBenchmarkValue = modalBenchmarkValue * (1 + benchmarkChange);
+        modalChartData.benchmarkValues.push(modalBenchmarkValue);
+      }
+      
+      // Create the chart
+      modalTradingChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: modalChartData.dates,
+          datasets: [
+            {
+              label: 'AI Trading Portfolio',
+              data: modalChartData.portfolioValues,
+              borderColor: 'rgb(59, 130, 246)',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            },
+            {
+              label: 'Market Benchmark',
+              data: modalChartData.benchmarkValues,
+              borderColor: 'rgb(156, 163, 175)',
+              borderDash: [5, 5],
+              tension: 0.3,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: 'Portfolio Value ($)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'nearest'
+          }
+        }
+      });
+    }
+    
+    // Start live updates for main page
+    function startLiveUpdates() {
+      // Update chart data every 2 seconds
+      dataUpdateInterval = setInterval(updateChartData, 2000);
+      
+      // Update metrics every 3 seconds
+      chartUpdateInterval = setInterval(updateMetrics, 3000);
+      
+      // Update market data every 3 seconds
+      setInterval(updateTradingData, 3000);
+    }
+    
+    // Start live updates for modal
+    function startModalLiveUpdates() {
+      // Update chart data every 2 seconds
+      modalDataUpdateInterval = setInterval(updateModalChartData, 2000);
+    }
+    
+    // Stop live updates for modal
+    function stopModalLiveUpdates() {
+      clearInterval(modalDataUpdateInterval);
+    }
+    
+    // Update main chart with new data point
+    function updateChartData() {
+      if (!tradingChart) return;
+      
+      // Remove oldest data point
+      if (chartData.dates.length > 30) {
+        chartData.dates.shift();
+        chartData.portfolioValues.shift();
+        chartData.benchmarkValues.shift();
+      }
+      
+      // Add new time label
+      const now = new Date();
+      const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      chartData.dates.push(timeString);
+      
+      // Add new data points with realistic fluctuations
+      // AI Portfolio - more consistent growth
+      const aiChange = (Math.random() * 2 - 0.8) / 100;
+      currentValue = currentValue * (1 + aiChange);
+      chartData.portfolioValues.push(currentValue);
+      
+      // Benchmark - more volatile
+      const benchmarkChange = (Math.random() * 4 - 2) / 100;
+      benchmarkValue = benchmarkValue * (1 + benchmarkChange);
+      chartData.benchmarkValues.push(benchmarkValue);
+      
+      // Update chart
+      tradingChart.update();
+    }
+    
+    // Update modal chart with new data point
+    function updateModalChartData() {
+      if (!modalTradingChart) return;
+      
+      // Remove oldest data point
+      if (modalChartData.dates.length > 30) {
+        modalChartData.dates.shift();
+        modalChartData.portfolioValues.shift();
+        modalChartData.benchmarkValues.shift();
+      }
+      
+      // Add new time label
+      const now = new Date();
+      const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+      modalChartData.dates.push(timeString);
+      
+      // Add new data points with realistic fluctuations
+      // AI Portfolio - more consistent growth
+      const aiChange = (Math.random() * 2 - 0.8) / 100;
+      modalCurrentValue = modalCurrentValue * (1 + aiChange);
+      modalChartData.portfolioValues.push(modalCurrentValue);
+      
+      // Benchmark - more volatile
+      const benchmarkChange = (Math.random() * 4 - 2) / 100;
+      modalBenchmarkValue = modalBenchmarkValue * (1 + benchmarkChange);
+      modalChartData.benchmarkValues.push(modalBenchmarkValue);
+      
+      // Update chart
+      modalTradingChart.update();
+    }
+    
+    // Update performance metrics
+    function updateMetrics() {
+      // Calculate performance metrics based on current data
+      const portfolioChange = ((currentValue - 10000) / 10000 * 100).toFixed(2);
+      const benchmarkChange = ((benchmarkValue - 10000) / 10000 * 100).toFixed(2);
+      
+      // Update metrics with slight variations
+      const winRate = 75 + Math.random() * 5;
+      const avgReturn = 3 + Math.random() * 1;
+      const sharpeRatio = 1.8 + Math.random() * 0.6;
+      const maxDrawdown = -7 - Math.random() * 3;
+      
+      document.getElementById('win-rate').textContent = `${winRate.toFixed(1)}%`;
+      document.getElementById('avg-return').textContent = `+${avgReturn.toFixed(1)}%`;
+      document.getElementById('sharpe-ratio').textContent = sharpeRatio.toFixed(1);
+      document.getElementById('max-drawdown').textContent = `${maxDrawdown.toFixed(1)}%`;
+    }
+    
+    // Simulate live data updates for trading demo
+    function updateTradingData() {
+      const stocks = document.querySelectorAll('#demo .flex.justify-between');
+      stocks.forEach(stock => {
+        const priceElement = stock.querySelector('span:last-child');
+        if (priceElement) {
+          const isPositive = priceElement.classList.contains('text-green-600');
+          const change = (Math.random() * 2 - 1) * 0.5;
+          const newValue = isPositive ? Math.max(0.1, change) : Math.min(-0.1, change);
+          
+          if (newValue >= 0) {
+            priceElement.classList.remove('text-red-600');
+            priceElement.classList.add('text-green-600');
+            priceElement.textContent = `$${(Math.random() * 500 + 100).toFixed(2)} (+${newValue.toFixed(2)}%)`;
+          } else {
+            priceElement.classList.remove('text-green-600');
+            priceElement.classList.add('text-red-600');
+            priceElement.textContent = `$${(Math.random() * 500 + 100).toFixed(2)} (${newValue.toFixed(2)}%)`;
+          }
+        }
+      });
+    }
+    
+    // Execute trade button functionality
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'execute-trade' || e.target.id === 'execute-trade-modal') {
+        let stockSelect, amountInput, strategySelect, resultsDiv;
+        
+        if (e.target.id === 'execute-trade') {
+          stockSelect = document.querySelector('#stock-select');
+          amountInput = document.querySelector('#trade-amount');
+          strategySelect = document.querySelector('#ai-strategy');
+          resultsDiv = document.getElementById('trading-results');
+        } else {
+          stockSelect = document.querySelector('#stock-select-modal');
+          amountInput = document.querySelector('#trade-amount-modal');
+          strategySelect = document.querySelector('#ai-strategy-modal');
+          resultsDiv = document.getElementById('trading-results-modal');
+        }
+        
+        const stock = stockSelect.value;
+        const amount = amountInput.value;
+        const strategy = strategySelect.value;
+        
+        // Simulate AI processing
+        resultsDiv.classList.remove('hidden');
+        resultsDiv.innerHTML = `
+          <h4 class="font-bold mb-2">Trade Execution Results</h4>
+          <p>AI analysis complete. Executing trade for ${stock} with $${amount} using ${strategy} strategy.</p>
+          <p>Predicted success probability: ${Math.floor(70 + Math.random() * 25)}%</p>
+          <p>Estimated return: ${(Math.random() * 5).toFixed(2)}%</p>
+          <p class="text-green-600 mt-2">Trade executed successfully with 35ms latency</p>
+        `;
+        
+        // Hide results after 5 seconds
+        setTimeout(() => {
+          resultsDiv.classList.add('hidden');
+        }, 5000);
+      }
+    });
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeMainChart();
+      startLiveUpdates();
+    });
+  </script>
+</body>
+</html>
